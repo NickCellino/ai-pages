@@ -101,3 +101,23 @@ canvas, img.preview {
 }
 
 ol li + li { margin-top: 0.5rem; }
+
+select {
+  border: 1px solid #44579e;
+  background: #0d1b44;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  margin-left: 0.35rem;
+}
+
+label {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+progress {
+  width: 100%;
+  height: 12px;
+  margin: 0.4rem 0 0.75rem;
+}

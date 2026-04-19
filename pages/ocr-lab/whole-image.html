@@ -8,14 +8,35 @@
 </head>
 <body>
   <main data-page="whole">
-    <h1>Demo 1: Whole-image OCR</h1>
-    <p>Upload an image with text and run OCR over the entire image.</p>
+    <h1>Demo 1: Whole-image OCR (improved)</h1>
+    <p>This version includes model choice, optional image cleanup, and a line-by-line mode that usually works better for documents.</p>
 
     <section class="card grid two">
       <div>
         <h2>Input</h2>
         <input id="upload" type="file" accept="image/*">
+        <div class="toolbar" style="margin-top: 0.75rem;">
+          <label>Model
+            <select id="model-select">
+              <option value="Xenova/trocr-base-printed">TrOCR base (printed)</option>
+              <option value="Xenova/trocr-base-handwritten">TrOCR base (handwritten)</option>
+            </select>
+          </label>
+          <label>Mode
+            <select id="ocr-mode">
+              <option value="line" selected>Line-by-line (recommended)</option>
+              <option value="full">Single pass (whole image)</option>
+            </select>
+          </label>
+        </div>
+        <label style="display:block;margin-top:0.5rem;">
+          <input id="enhance" type="checkbox" checked>
+          Enhance contrast + upscale before OCR
+        </label>
+
         <p class="status" id="status">Model not loaded yet.</p>
+        <progress id="progress" max="100" value="0" hidden></progress>
+
         <img id="preview" class="preview" alt="Uploaded preview" hidden>
         <div class="toolbar" style="margin-top: 0.75rem;">
           <button id="run" disabled>Run OCR</button>
