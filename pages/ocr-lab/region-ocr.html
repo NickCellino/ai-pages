@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Region OCR Demo</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main data-page="region">
+    <h1>Demo 2: Region OCR</h1>
+    <p>Upload an image, drag a rectangle, and OCR only the selected area.</p>
+
+    <section class="card grid two">
+      <div>
+        <h2>Canvas</h2>
+        <input id="upload" type="file" accept="image/*">
+        <p class="status" id="status">Model not loaded yet.</p>
+        <canvas id="canvas" width="720" height="420"></canvas>
+        <div class="toolbar" style="margin-top: 0.75rem;">
+          <button id="run" disabled>OCR Selection</button>
+          <button id="reset">Reset Selection</button>
+        </div>
+      </div>
+      <div>
+        <h2>Extracted text</h2>
+        <textarea id="result" placeholder="Selected-region OCR text appears here..."></textarea>
+        <p class="pill">Click + drag on canvas to define OCR region.</p>
+      </div>
+    </section>
+
+    <p><a href="./index.html">← Back to OCR demos</a></p>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

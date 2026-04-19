@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whole Image OCR Demo</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main data-page="whole">
+    <h1>Demo 1: Whole-image OCR</h1>
+    <p>Upload an image with text and run OCR over the entire image.</p>
+
+    <section class="card grid two">
+      <div>
+        <h2>Input</h2>
+        <input id="upload" type="file" accept="image/*">
+        <p class="status" id="status">Model not loaded yet.</p>
+        <img id="preview" class="preview" alt="Uploaded preview" hidden>
+        <div class="toolbar" style="margin-top: 0.75rem;">
+          <button id="run" disabled>Run OCR</button>
+          <button id="clear">Clear</button>
+        </div>
+      </div>
+      <div>
+        <h2>Extracted text</h2>
+        <textarea id="result" placeholder="OCR text appears here..."></textarea>
+      </div>
+    </section>
+
+    <p><a href="./index.html">← Back to OCR demos</a></p>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

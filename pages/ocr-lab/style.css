@@ -1,0 +1,103 @@
+:root {
+  --bg: #0b1020;
+  --panel: #121931;
+  --panel-2: #1a2447;
+  --text: #e9ecff;
+  --muted: #a8b0d9;
+  --accent: #7c9cff;
+  --good: #39d98a;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #1a2452, var(--bg) 45%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), #0f1630);
+  border: 1px solid #2b3870;
+  border-radius: 16px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+h1, h2, h3 { margin-top: 0; }
+
+a { color: #aac0ff; }
+a:hover { color: white; }
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 860px) {
+  .grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+button, input[type="file"]::file-selector-button {
+  border: 1px solid #44579e;
+  background: #253870;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover,
+input[type="file"]::file-selector-button:hover { background: #324b96; }
+
+textarea, pre {
+  width: 100%;
+  background: #0a122c;
+  color: #d8e0ff;
+  border: 1px solid #2a3a72;
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+textarea { min-height: 120px; }
+
+.status {
+  color: var(--muted);
+  min-height: 1.5rem;
+}
+.status.good { color: var(--good); }
+
+canvas, img.preview {
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1px solid #344784;
+  background: #08112e;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pill {
+  display: inline-block;
+  border: 1px solid #3a4f90;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+ol li + li { margin-top: 0.5rem; }

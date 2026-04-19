@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR Playground with Transformers.js</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main>
+    <h1>🔎 OCR Playground (Transformers.js)</h1>
+    <p>Try two different in-browser OCR demos powered by Hugging Face Transformers.js.</p>
+
+    <div class="grid two">
+      <section class="card">
+        <h2>Demo 1: Whole-image OCR</h2>
+        <p>Upload any image and extract text from the full image in one shot.</p>
+        <a href="./whole-image.html">Open whole-image OCR →</a>
+      </section>
+
+      <section class="card">
+        <h2>Demo 2: Region OCR</h2>
+        <p>Draw a rectangle over a selected area and OCR just that region.</p>
+        <a href="./region-ocr.html">Open region OCR →</a>
+      </section>
+    </div>
+
+    <section class="card">
+      <h3>How this works</h3>
+      <ol>
+        <li>The page loads a TrOCR model through <code>@xenova/transformers</code>.</li>
+        <li>Your image is kept in-browser and sent to the model pipeline.</li>
+        <li>Predicted text is shown in the output panel.</li>
+      </ol>
+      <p><span class="pill">Tip</span> First run may take a bit while model files download and cache.</p>
+    </section>
+
+    <p><a href="../../index.html">← Back to project list</a></p>
+  </main>
+</body>
+</html>
