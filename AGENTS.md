@@ -2,24 +2,37 @@
 
 ## Rules
 
-1. Create a new branch from `main` for every page change.
-2. Put each page in `pages/<slug>/`.
-3. Every page directory must contain `index.html`.
-4. Optional files are limited to `style.css`, `script.js`, and `assets/` inside the same page directory.
-5. Update the root `index.html` so the new page appears in the homepage list.
-6. Keep the site fully static. Do not add frameworks, package dependencies, or build steps.
-7. Open a pull request after pushing the branch.
+- Put each project in `pages/<slug>/`
+- Each project must have `index.html`
+- A project may have additional HTML files, plus CSS, JS, and assets
+- Treat each folder as a self-contained mini-site
+- Use relative links like `./other.html`
+- Keep all files for a project inside its own folder
+- Do not depend on files from other project folders
+- Update the root `index.html` to link to each new project
+- Use a feature branch and open a PR
+- Do not commit directly to `main`
 
-## Required Workflow
+## Prefer
 
-1. Create branch.
-2. Add page files.
-3. Update homepage.
-4. Commit changes.
-5. Push branch.
-6. Open PR.
+- Plain HTML, CSS, and JavaScript
+- Simple structure
+- Minimal dependencies
 
-## Page Convention
+## Avoid
 
-- Path: `pages/<slug>/index.html`
-- Optional support files: `pages/<slug>/style.css`, `pages/<slug>/script.js`, `pages/<slug>/assets/`
+- Frameworks
+- Build steps
+- Server-side code
+- Unrelated refactors
+
+## Example
+
+```text
+pages/quiz-app/
+  index.html
+  results.html
+  style.css
+  script.js
+  assets/
+```
