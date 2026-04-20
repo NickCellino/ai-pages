@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whole Image OCR Demo</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main data-page="whole">
+    <h1>Demo 1: Whole-image OCR (improved)</h1>
+    <p>
+      This version includes model choice, optional image cleanup, classic line-by-line OCR,
+      and a new <strong>auto region detect + OCR</strong> mode that draws detected text boxes.
+    </p>
+
+    <section class="card grid two">
+      <div>
+        <h2>Input</h2>
+        <input id="upload" type="file" accept="image/*">
+        <div class="toolbar" style="margin-top: 0.75rem;">
+          <label>Model
+            <select id="model-select">
+              <option value="Xenova/trocr-base-printed">TrOCR base (printed)</option>
+              <option value="Xenova/trocr-base-handwritten">TrOCR base (handwritten)</option>
+            </select>
+          </label>
+          <label>Mode
+            <select id="ocr-mode">
+              <option value="region" selected>Auto region detect + OCR</option>
+              <option value="line">Line-by-line OCR</option>
+              <option value="full">Single pass (whole image)</option>
+            </select>
+          </label>
+        </div>
+        <label style="display:block;margin-top:0.5rem;">
+          <input id="enhance" type="checkbox" checked>
+          Enhance contrast + upscale before OCR
+        </label>
+
+        <p class="status" id="status">Model not loaded yet.</p>
+        <progress id="progress" max="100" value="0" hidden></progress>
+
+        <canvas id="preview-canvas" class="preview" width="800" height="450" hidden></canvas>
+
+        <div class="toolbar" style="margin-top: 0.75rem;">
+          <button id="run" disabled>Run OCR</button>
+          <button id="clear">Clear</button>
+        </div>
+      </div>
+      <div>
+        <h2>Extracted text</h2>
+        <textarea id="result" placeholder="OCR text appears here..."></textarea>
+      </div>
+    </section>
+
+    <p><a href="./index.html">← Back to OCR demos</a></p>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
