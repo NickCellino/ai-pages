@@ -121,3 +121,11 @@ progress {
   height: 12px;
   margin: 0.4rem 0 0.75rem;
 }
+
+input[type="text"], input[type="password"] {
+  border: 1px solid #44579e;
+  background: #0d1b44;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
