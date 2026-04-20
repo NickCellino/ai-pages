@@ -38,7 +38,7 @@ async function getOcrPipeline(statusEl, progressEl, modelId) {
   statusEl.textContent = 'Model loaded. Ready.';
   statusEl.classList.add('good');
   updateProgress(progressEl, 100);
-  setTimeout(() => hideProgress(progressEl), 300);
+  setTimeout(() => hideProgress(progressEl), 350);
   return pipe;
 }
 
@@ -128,20 +128,160 @@ function detectTextLines(canvas) {
   }
 
   const padding = Math.round(height * 0.01);
-  return merged.slice(0, 25).map(([top, bottom]) => {
+  return merged.slice(0, 30).map(([top, bottom]) => {
     const y1 = Math.max(0, top - padding);
     const y2 = Math.min(height, bottom + padding);
     return [y1, y2];
   });
 }
 
-function cropToDataUrl(canvas, y1, y2) {
-  const h = Math.max(1, Math.floor(y2 - y1));
+function findTextRegions(canvas) {
+  // Downscale for faster connected component labeling.
+  const maxDetectSide = 900;
+  const scale = Math.min(1, maxDetectSide / Math.max(canvas.width, canvas.height));
+
+  const detectCanvas = document.createElement('canvas');
+  detectCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+  detectCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+  const dctx = detectCanvas.getContext('2d', { willReadFrequently: true });
+  dctx.drawImage(canvas, 0, 0, detectCanvas.width, detectCanvas.height);
+
+  const { width, height } = detectCanvas;
+  const data = dctx.getImageData(0, 0, width, height).data;
+
+  const binary = new Uint8Array(width * height);
+  for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
+    binary[p] = data[i] < 165 ? 1 : 0;
+  }
+
+  const visited = new Uint8Array(width * height);
+  const boxes = [];
+
+  const stackX = [];
+  const stackY = [];
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = y * width + x;
+      if (!binary[index] || visited[index]) continue;
+
+      let minX = x;
+      let maxX = x;
+      let minY = y;
+      let maxY = y;
+      let area = 0;
+
+      stackX.push(x);
+      stackY.push(y);
+      visited[index] = 1;
+
+      while (stackX.length) {
+        const cx = stackX.pop();
+        const cy = stackY.pop();
+        area += 1;
+
+        if (cx < minX) minX = cx;
+        if (cx > maxX) maxX = cx;
+        if (cy < minY) minY = cy;
+        if (cy > maxY) maxY = cy;
+
+        for (let ny = cy - 1; ny <= cy + 1; ny += 1) {
+          if (ny < 0 || ny >= height) continue;
+          for (let nx = cx - 1; nx <= cx + 1; nx += 1) {
+            if (nx < 0 || nx >= width) continue;
+            const ni = ny * width + nx;
+            if (!binary[ni] || visited[ni]) continue;
+            visited[ni] = 1;
+            stackX.push(nx);
+            stackY.push(ny);
+          }
+        }
+      }
+
+      const bw = maxX - minX + 1;
+      const bh = maxY - minY + 1;
+      if (area < 20 || bw < 8 || bh < 8) continue;
+      boxes.push({ x: minX, y: minY, w: bw, h: bh });
+    }
+  }
+
+  // Merge nearby components into text regions.
+  boxes.sort((a, b) => a.y - b.y || a.x - b.x);
+  const merged = [];
+  const pad = 3;
+
+  for (const box of boxes) {
+    let attached = false;
+    for (const m of merged) {
+      const overlapY = Math.max(0, Math.min(m.y + m.h, box.y + box.h) - Math.max(m.y, box.y));
+      const gapX = Math.max(0, Math.max(m.x, box.x) - Math.min(m.x + m.w, box.x + box.w));
+      const similarRow = overlapY > Math.min(m.h, box.h) * 0.35;
+      if (similarRow && gapX < 26) {
+        const x1 = Math.min(m.x, box.x);
+        const y1 = Math.min(m.y, box.y);
+        const x2 = Math.max(m.x + m.w, box.x + box.w);
+        const y2 = Math.max(m.y + m.h, box.y + box.h);
+        m.x = x1;
+        m.y = y1;
+        m.w = x2 - x1;
+        m.h = y2 - y1;
+        attached = true;
+        break;
+      }
+    }
+    if (!attached) merged.push({ ...box });
+  }
+
+  // Convert back to original canvas coordinates.
+  const inv = 1 / scale;
+  const minRegionArea = 200;
+  return merged
+    .map((b) => ({
+      x: Math.max(0, Math.floor((b.x - pad) * inv)),
+      y: Math.max(0, Math.floor((b.y - pad) * inv)),
+      w: Math.ceil((b.w + pad * 2) * inv),
+      h: Math.ceil((b.h + pad * 2) * inv),
+    }))
+    .filter((b) => b.w * b.h > minRegionArea)
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .slice(0, 40);
+}
+
+function cropRectToDataUrl(canvas, rect) {
   const out = document.createElement('canvas');
-  out.width = canvas.width;
-  out.height = h;
-  out.getContext('2d').drawImage(canvas, 0, y1, canvas.width, h, 0, 0, out.width, out.height);
+  out.width = Math.max(1, Math.floor(rect.w));
+  out.height = Math.max(1, Math.floor(rect.h));
+  out
+    .getContext('2d')
+    .drawImage(canvas, rect.x, rect.y, rect.w, rect.h, 0, 0, out.width, out.height);
   return out.toDataURL('image/png');
+}
+
+function drawPreviewWithBoxes(previewCanvas, sourceCanvas, boxes = []) {
+  const ctx = previewCanvas.getContext('2d');
+  const ratio = Math.min(previewCanvas.width / sourceCanvas.width, previewCanvas.height / sourceCanvas.height);
+  const w = sourceCanvas.width * ratio;
+  const h = sourceCanvas.height * ratio;
+  const ox = (previewCanvas.width - w) / 2;
+  const oy = (previewCanvas.height - h) / 2;
+
+  ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+  ctx.fillStyle = '#08112e';
+  ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+  ctx.drawImage(sourceCanvas, ox, oy, w, h);
+
+  if (!boxes.length) return;
+  ctx.strokeStyle = '#39d98a';
+  ctx.fillStyle = 'rgba(57, 217, 138, 0.2)';
+  ctx.lineWidth = 2;
+  for (const b of boxes) {
+    const x = ox + b.x * ratio;
+    const y = oy + b.y * ratio;
+    const bw = b.w * ratio;
+    const bh = b.h * ratio;
+    ctx.fillRect(x, y, bw, bh);
+    ctx.strokeRect(x, y, bw, bh);
+  }
 }
 
 async function runLineByLineOcr(pipe, canvas, status, progress, maxTokens = 128) {
@@ -150,7 +290,7 @@ async function runLineByLineOcr(pipe, canvas, status, progress, maxTokens = 128)
 
   for (let i = 0; i < lines.length; i += 1) {
     const [y1, y2] = lines[i];
-    const dataUrl = cropToDataUrl(canvas, y1, y2);
+    const dataUrl = cropRectToDataUrl(canvas, { x: 0, y: y1, w: canvas.width, h: y2 - y1 });
     status.textContent = `OCR line ${i + 1}/${lines.length}…`;
     updateProgress(progress, Math.round((i / lines.length) * 100));
 
@@ -161,6 +301,25 @@ async function runLineByLineOcr(pipe, canvas, status, progress, maxTokens = 128)
 
   updateProgress(progress, 100);
   return output.join('\n');
+}
+
+async function runRegionDetectOcr(pipe, canvas, status, progress, previewCanvas, maxTokens = 128) {
+  const boxes = findTextRegions(canvas);
+  drawPreviewWithBoxes(previewCanvas, canvas, boxes);
+
+  const chunks = [];
+  for (let i = 0; i < boxes.length; i += 1) {
+    const b = boxes[i];
+    status.textContent = `OCR detected region ${i + 1}/${boxes.length}…`;
+    updateProgress(progress, Math.round((i / Math.max(1, boxes.length)) * 100));
+
+    const out = await pipe(cropRectToDataUrl(canvas, b), { max_new_tokens: maxTokens });
+    const text = out?.[0]?.generated_text?.trim();
+    if (text) chunks.push(text);
+  }
+
+  updateProgress(progress, 100);
+  return { text: chunks.join('\n'), boxes };
 }
 
 function setBusy(statusEl, runBtn, busyText) {
@@ -177,7 +336,7 @@ function clearBusy(statusEl, runBtn, doneText = 'Done.') {
 
 async function setupWholeImage() {
   const upload = document.getElementById('upload');
-  const preview = document.getElementById('preview');
+  const previewCanvas = document.getElementById('preview-canvas');
   const run = document.getElementById('run');
   const clear = document.getElementById('clear');
   const result = document.getElementById('result');
@@ -187,7 +346,6 @@ async function setupWholeImage() {
   const enhance = document.getElementById('enhance');
   const progress = document.getElementById('progress');
 
-  let imageDataUrl = '';
   let imageEl = null;
 
   const prewarm = () => getOcrPipeline(status, progress, modelSelect.value).catch((err) => {
@@ -206,25 +364,26 @@ async function setupWholeImage() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      imageDataUrl = String(reader.result || '');
+      const imageDataUrl = String(reader.result || '');
       const img = new Image();
       img.onload = () => {
         imageEl = img;
         run.disabled = false;
         status.classList.remove('good');
         status.textContent = 'Image loaded. Ready to run OCR.';
+
+        const base = preprocessToCanvas(imageEl, false);
+        drawPreviewWithBoxes(previewCanvas, base, []);
+        previewCanvas.hidden = false;
       };
       img.src = imageDataUrl;
-
-      preview.src = imageDataUrl;
-      preview.hidden = false;
       result.value = '';
     };
     reader.readAsDataURL(file);
   });
 
   run.addEventListener('click', async () => {
-    if (!imageDataUrl || !imageEl) return;
+    if (!imageEl) return;
 
     try {
       setBusy(status, run, 'Preparing image…');
@@ -235,9 +394,17 @@ async function setupWholeImage() {
 
       let text = '';
       if (ocrMode.value === 'line') {
+        drawPreviewWithBoxes(previewCanvas, processed, []);
         text = await runLineByLineOcr(ocr, processed, status, progress);
+      } else if (ocrMode.value === 'region') {
+        const out = await runRegionDetectOcr(ocr, processed, status, progress, previewCanvas);
+        text = out.text;
+        if (!out.boxes.length) {
+          status.textContent = 'No text regions detected. Try disabling enhancement or using a clearer image.';
+        }
       } else {
         status.textContent = 'Running OCR on full image…';
+        drawPreviewWithBoxes(previewCanvas, processed, []);
         updateProgress(progress, 35);
         const out = await ocr(processed.toDataURL('image/png'), { max_new_tokens: 256 });
         text = out?.[0]?.generated_text?.trim() || '';
@@ -256,12 +423,11 @@ async function setupWholeImage() {
 
   clear.addEventListener('click', () => {
     upload.value = '';
-    preview.hidden = true;
-    preview.src = '';
-    imageDataUrl = '';
     imageEl = null;
     result.value = '';
     run.disabled = true;
+    previewCanvas.hidden = true;
+    previewCanvas.getContext('2d').clearRect(0, 0, previewCanvas.width, previewCanvas.height);
     status.classList.remove('good');
     status.textContent = 'Cleared. Upload a new image.';
     hideProgress(progress);
@@ -283,6 +449,33 @@ async function setupRegionOcr() {
   let startX = 0;
   let startY = 0;
 
+  function getImageRect() {
+    if (!img) return null;
+    const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const w = img.width * ratio;
+    const h = img.height * ratio;
+    const ox = (canvas.width - w) / 2;
+    const oy = (canvas.height - h) / 2;
+    return { ox, oy, w, h, ratio };
+  }
+
+  function clampSelectionToImage(sel) {
+    const rect = getImageRect();
+    if (!rect) return sel;
+
+    const x1 = Math.max(rect.ox, Math.min(sel.x, rect.ox + rect.w));
+    const y1 = Math.max(rect.oy, Math.min(sel.y, rect.oy + rect.h));
+    const x2 = Math.max(rect.ox, Math.min(sel.x + sel.w, rect.ox + rect.w));
+    const y2 = Math.max(rect.oy, Math.min(sel.y + sel.h, rect.oy + rect.h));
+
+    return {
+      x: Math.min(x1, x2),
+      y: Math.min(y1, y2),
+      w: Math.abs(x2 - x1),
+      h: Math.abs(y2 - y1),
+    };
+  }
+
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!img) {
@@ -294,12 +487,8 @@ async function setupRegionOcr() {
       return;
     }
 
-    const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-    const w = img.width * ratio;
-    const h = img.height * ratio;
-    const ox = (canvas.width - w) / 2;
-    const oy = (canvas.height - h) / 2;
-    ctx.drawImage(img, ox, oy, w, h);
+    const r = getImageRect();
+    ctx.drawImage(img, r.ox, r.oy, r.w, r.h);
 
     if (selection) {
       ctx.strokeStyle = '#7c9cff';
@@ -308,6 +497,16 @@ async function setupRegionOcr() {
       ctx.fillStyle = 'rgba(124, 156, 255, 0.2)';
       ctx.fillRect(selection.x, selection.y, selection.w, selection.h);
     }
+  }
+
+  function eventToCanvasPoint(e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width;
+    const sy = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * sx,
+      y: (e.clientY - rect.top) * sy,
+    };
   }
 
   draw();
@@ -335,9 +534,9 @@ async function setupRegionOcr() {
 
   canvas.addEventListener('mousedown', (e) => {
     if (!img) return;
-    const rect = canvas.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
+    const p = eventToCanvasPoint(e);
+    startX = p.x;
+    startY = p.y;
     dragging = true;
     selection = { x: startX, y: startY, w: 0, h: 0 };
     draw();
@@ -345,16 +544,13 @@ async function setupRegionOcr() {
 
   canvas.addEventListener('mousemove', (e) => {
     if (!dragging || !img) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    selection = {
-      x: Math.min(startX, x),
-      y: Math.min(startY, y),
-      w: Math.abs(x - startX),
-      h: Math.abs(y - startY),
-    };
+    const p = eventToCanvasPoint(e);
+    selection = clampSelectionToImage({
+      x: Math.min(startX, p.x),
+      y: Math.min(startY, p.y),
+      w: Math.abs(p.x - startX),
+      h: Math.abs(p.y - startY),
+    });
     draw();
   });
 

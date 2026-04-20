@@ -9,7 +9,10 @@
 <body>
   <main data-page="whole">
     <h1>Demo 1: Whole-image OCR (improved)</h1>
-    <p>This version includes model choice, optional image cleanup, and a line-by-line mode that usually works better for documents.</p>
+    <p>
+      This version includes model choice, optional image cleanup, classic line-by-line OCR,
+      and a new <strong>auto region detect + OCR</strong> mode that draws detected text boxes.
+    </p>
 
     <section class="card grid two">
       <div>
@@ -24,7 +27,8 @@
           </label>
           <label>Mode
             <select id="ocr-mode">
-              <option value="line" selected>Line-by-line (recommended)</option>
+              <option value="region" selected>Auto region detect + OCR</option>
+              <option value="line">Line-by-line OCR</option>
               <option value="full">Single pass (whole image)</option>
             </select>
           </label>
@@ -37,7 +41,8 @@
         <p class="status" id="status">Model not loaded yet.</p>
         <progress id="progress" max="100" value="0" hidden></progress>
 
-        <img id="preview" class="preview" alt="Uploaded preview" hidden>
+        <canvas id="preview-canvas" class="preview" width="800" height="450" hidden></canvas>
+
         <div class="toolbar" style="margin-top: 0.75rem;">
           <button id="run" disabled>Run OCR</button>
           <button id="clear">Clear</button>
