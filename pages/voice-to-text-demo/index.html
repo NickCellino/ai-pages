@@ -18,9 +18,8 @@
       <label class="field">
         Model
         <select id="modelSelect">
-          <option value="distil-whisper/distil-large-v3.5">Best accuracy (English, slower)</option>
-          <option value="distil-whisper/distil-large-v3">High accuracy (English)</option>
-          <option value="Xenova/whisper-small.en">Balanced speed/accuracy</option>
+          <option value="Xenova/whisper-small.en">Best accuracy (reliable in browser)</option>
+          <option value="Xenova/whisper-base.en">High accuracy</option>
           <option value="Xenova/whisper-tiny.en">Fastest (lower accuracy)</option>
         </select>
       </label>
@@ -41,7 +40,7 @@
 
     <p class="note">
       Tip: Microphone access usually requires HTTPS or <code>localhost</code>.
-      Larger models are more accurate, but the first load can take a while.
+      Some very large Whisper checkpoints can crash browser tabs due to memory usage, so this demo only includes stable in-browser options.
     </p>
 
     <p><a href="../../index.html">← Back to project list</a></p>

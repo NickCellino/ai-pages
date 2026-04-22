@@ -14,6 +14,7 @@ let activeModelId = null;
 const pipelineCache = new Map();
 let mediaRecorder = null;
 let recordedChunks = [];
+let isTranscribing = false;
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -57,6 +58,8 @@ async function loadModel() {
 }
 
 async function startRecording() {
+  if (isTranscribing) return;
+
   transcriptEl.value = '';
   recordedChunks = [];
 
@@ -71,9 +74,12 @@ async function startRecording() {
     };
 
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-      await transcribeBlob(audioBlob);
-      stream.getTracks().forEach((track) => track.stop());
+      try {
+        const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+        await transcribeBlob(audioBlob);
+      } finally {
+        stream.getTracks().forEach((track) => track.stop());
+      }
     };
 
     mediaRecorder.start();
@@ -89,12 +95,19 @@ async function startRecording() {
 
 async function transcribeBlob(blob) {
   if (!transcriber) return;
+  if (isTranscribing) return;
+  isTranscribing = true;
+  loadModelBtn.disabled = true;
+  startBtn.disabled = true;
+  stopBtn.disabled = true;
+  modelSelect.disabled = true;
 
   setStatus('Decoding audio...');
 
+  let audioContext = null;
   try {
     const arrayBuffer = await blob.arrayBuffer();
-    const audioContext = new AudioContext({ sampleRate: 16000 });
+    audioContext = new AudioContext({ sampleRate: 16000 });
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     const audio = mergeToMono(audioBuffer);
 
@@ -107,11 +120,16 @@ async function transcribeBlob(blob) {
 
     transcriptEl.value = result.text.trim() || '(No speech detected)';
     setStatus(`Done (${activeModelId ?? 'model'}).`);
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
   } catch (error) {
     console.error(error);
     setStatus(`Transcription failed: ${error.message}`);
+  } finally {
+    if (audioContext) {
+      await audioContext.close();
+    }
+    isTranscribing = false;
+    loadModelBtn.disabled = false;
+    modelSelect.disabled = false;
     startBtn.disabled = false;
     stopBtn.disabled = true;
   }
@@ -143,4 +161,14 @@ stopBtn.addEventListener('click', () => {
   stopBtn.disabled = true;
   setStatus('Stopping recording...');
   mediaRecorder.stop();
+});
+
+window.addEventListener('error', (event) => {
+  if (!event?.message) return;
+  setStatus(`Runtime error: ${event.message}`);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event?.reason?.message ?? String(event?.reason ?? 'Unknown promise rejection');
+  setStatus(`Unhandled error: ${reason}`);
 });
