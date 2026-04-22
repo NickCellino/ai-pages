@@ -15,6 +15,15 @@
     </p>
 
     <div class="card controls">
+      <label class="field">
+        Model
+        <select id="modelSelect">
+          <option value="distil-whisper/distil-large-v3.5">Best accuracy (English, slower)</option>
+          <option value="distil-whisper/distil-large-v3">High accuracy (English)</option>
+          <option value="Xenova/whisper-small.en">Balanced speed/accuracy</option>
+          <option value="Xenova/whisper-tiny.en">Fastest (lower accuracy)</option>
+        </select>
+      </label>
       <button id="loadModelBtn" type="button">Load model</button>
       <button id="startBtn" type="button" disabled>Start recording</button>
       <button id="stopBtn" type="button" disabled>Stop + transcribe</button>
@@ -32,7 +41,7 @@
 
     <p class="note">
       Tip: Microphone access usually requires HTTPS or <code>localhost</code>.
-      The first model load may take a while.
+      Larger models are more accurate, but the first load can take a while.
     </p>
 
     <p><a href="../../index.html">← Back to project list</a></p>
