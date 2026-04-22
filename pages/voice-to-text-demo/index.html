@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice to Text Demo (Transformers.js)</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Voice to Text Demo</h1>
+    <p>
+      Record your voice and transcribe it in-browser with
+      <strong>Transformers.js</strong> (Whisper).
+    </p>
+
+    <div class="card controls">
+      <button id="loadModelBtn" type="button">Load model</button>
+      <button id="startBtn" type="button" disabled>Start recording</button>
+      <button id="stopBtn" type="button" disabled>Stop + transcribe</button>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <p id="status">Model not loaded.</p>
+    </div>
+
+    <div class="card">
+      <h2>Transcript</h2>
+      <textarea id="transcript" rows="8" placeholder="Your transcript will appear here..." readonly></textarea>
+    </div>
+
+    <p class="note">
+      Tip: Microphone access usually requires HTTPS or <code>localhost</code>.
+      The first model load may take a while.
+    </p>
+
+    <p><a href="../../index.html">← Back to project list</a></p>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
