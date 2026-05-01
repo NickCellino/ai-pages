@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vinyl Record Finder</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main>
+    <h1>Vinyl Record Finder</h1>
+    <p>
+      Upload or capture a photo of a record cover. The app can isolate the cover region, run reverse image lookup,
+      then estimate the most likely album name and artist.
+    </p>
+
+    <section class="card">
+      <h2>1) Input</h2>
+      <label class="file-input">
+        <span>Take/choose photo</span>
+        <input id="imageInput" type="file" accept="image/*" capture="environment" />
+      </label>
+      <label class="checkbox-row">
+        <input id="enableCrop" type="checkbox" checked />
+        <span>Enable cover-region isolation pre-processing</span>
+      </label>
+      <small>
+        Tip: crop helps when there is background clutter. Disable it if detection trims the artwork incorrectly.
+      </small>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Original</h2>
+        <canvas id="originalCanvas" width="600" height="600"></canvas>
+      </article>
+      <article class="card">
+        <h2>Pre-processing output</h2>
+        <canvas id="processedCanvas" width="600" height="600"></canvas>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>2) Reverse image lookup</h2>
+      <p>
+        Google reverse image search is not freely open as a public browser API. This demo uses
+        <strong>Google Cloud Vision Web Detection API</strong> (requires your API key).
+      </p>
+      <label>
+        Google Cloud API key
+        <input id="apiKey" type="password" placeholder="AIza..." autocomplete="off" />
+      </label>
+      <button id="analyzeBtn" type="button" disabled>Find record</button>
+      <pre id="status"></pre>
+    </section>
+
+    <section class="card">
+      <h2>3) Predicted result</h2>
+      <p><strong>Album:</strong> <span id="albumOut">—</span></p>
+      <p><strong>Artist:</strong> <span id="artistOut">—</span></p>
+      <details>
+        <summary>Raw candidate signals</summary>
+        <pre id="rawOut"></pre>
+      </details>
+    </section>
+  </main>
+
+  <script src="./script.js" type="module"></script>
+</body>
+</html>
