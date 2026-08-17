@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Measure reaction time, compare display settings, and keep experiment datasets locally in your browser.">
+  <title>Input Lag Lab</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="Input Lag Lab home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>INPUT LAG LAB</span>
+    </a>
+    <div class="storage-note"><span aria-hidden="true">●</span> Saved on this device</div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Human reaction-time experiments</p>
+        <h1 id="page-title">Measure the delay<br><em>you can feel.</em></h1>
+      </div>
+      <p class="hero-copy">Create a dataset for each display setup, run repeated trials, and compare the clean results. Everything stays in this browser.</p>
+    </section>
+
+    <section class="test-layout" aria-label="Reaction time test">
+      <div class="test-column">
+        <div id="reaction-pad" class="reaction-pad is-idle" role="button" tabindex="0" aria-live="polite" aria-describedby="pad-hint">
+          <div class="pad-grid" aria-hidden="true"></div>
+          <div class="pad-content">
+            <span id="pad-icon" class="pad-icon" aria-hidden="true">↗</span>
+            <p id="pad-kicker" class="pad-kicker">Ready to measure?</p>
+            <h2 id="pad-title">Click to start</h2>
+            <p id="pad-hint" class="pad-hint">Wait for green, then react as quickly as you can.</p>
+          </div>
+          <span id="trial-counter" class="trial-counter">No trials yet</span>
+        </div>
+        <p class="keyboard-hint"><kbd>Space</kbd> also starts and records a reaction</p>
+      </div>
+
+      <aside class="control-panel" aria-label="Experiment settings">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Active experiment</p>
+            <h2>Test setup</h2>
+          </div>
+          <button id="new-dataset" class="icon-button" type="button" title="Create a new dataset" aria-label="Create a new dataset">+</button>
+        </div>
+
+        <label for="dataset-select">Dataset</label>
+        <select id="dataset-select"></select>
+
+        <label for="dataset-name">Dataset label</label>
+        <div class="input-action">
+          <input id="dataset-name" type="text" maxlength="60" autocomplete="off" placeholder="e.g. 144 Hz, Game Mode">
+          <button id="rename-dataset" type="button">Save</button>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <label for="delay-min">Min wait</label>
+            <div class="number-input"><input id="delay-min" type="number" min="500" max="9000" step="100" value="1500"><span>ms</span></div>
+          </div>
+          <div>
+            <label for="delay-max">Max wait</label>
+            <div class="number-input"><input id="delay-max" type="number" min="600" max="10000" step="100" value="4500"><span>ms</span></div>
+          </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <div class="live-stats" aria-label="Current dataset summary">
+          <div><span>Mean</span><strong id="active-mean">—</strong></div>
+          <div><span>Median</span><strong id="active-median">—</strong></div>
+          <div><span>Included</span><strong id="active-count">0</strong></div>
+        </div>
+
+        <button id="delete-dataset" class="text-button danger" type="button">Delete dataset</button>
+      </aside>
+    </section>
+
+    <section class="results-section" aria-labelledby="results-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Stored experiments</p>
+          <h2 id="results-title">Your datasets</h2>
+        </div>
+        <div class="results-actions">
+          <button id="export-csv" class="text-button" type="button">Export CSV</button>
+          <button id="clear-results" class="text-button danger" type="button">Clear active results</button>
+        </div>
+      </div>
+      <p class="outlier-note">Outliers are kept in the raw data, but automatically excluded from summaries using the 1.5× IQR rule after four trials.</p>
+      <div id="dataset-grid" class="dataset-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>For better comparisons, keep your input device, browser, and test conditions consistent between datasets.</p>
+  </footer>
+
+  <dialog id="new-dataset-dialog">
+    <form id="new-dataset-form" method="dialog">
+      <p class="eyebrow">New experiment</p>
+      <h2>Create a dataset</h2>
+      <p>Use a label that describes the setting you are changing.</p>
+      <label for="new-dataset-name">Dataset label</label>
+      <input id="new-dataset-name" type="text" maxlength="60" placeholder="e.g. TV Game Mode on" required>
+      <div class="dialog-actions">
+        <button class="text-button" value="cancel" type="button" id="cancel-dialog">Cancel</button>
+        <button class="primary-button" value="default" type="submit">Create dataset</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./script.js"></script>
+</body>
+</html>
