@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rasterization Step-by-Step</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Interactive graphics pipeline</p>
+        <h1 id="page-title">How rasterization turns shapes into pixels</h1>
+        <p class="intro">Step through a tiny triangle renderer. Each stage shows the input it receives, the work it does, and the output it passes to the next stage.</p>
+      </div>
+      <div class="hero-card" aria-label="Current pipeline summary">
+        <span id="stage-count">Step 1 of 6</span>
+        <strong id="stage-name">Model vertices</strong>
+        <p id="stage-mini">Three points describe a triangle before the screen knows anything about pixels.</p>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Animation controls">
+      <button id="prev-step" type="button">← Previous</button>
+      <button id="play-pause" type="button" class="primary">Play animation</button>
+      <button id="next-step" type="button">Next →</button>
+      <label class="speed-control">Speed
+        <input id="speed" type="range" min="800" max="2800" step="200" value="1500">
+      </label>
+    </section>
+
+    <nav class="steps" aria-label="Rasterization steps">
+      <button class="step active" data-step="0" type="button"><span>1</span>Model</button>
+      <button class="step" data-step="1" type="button"><span>2</span>Transform</button>
+      <button class="step" data-step="2" type="button"><span>3</span>Clip</button>
+      <button class="step" data-step="3" type="button"><span>4</span>Project</button>
+      <button class="step" data-step="4" type="button"><span>5</span>Sample</button>
+      <button class="step" data-step="5" type="button"><span>6</span>Shade</button>
+    </nav>
+
+    <section class="stage-grid">
+      <article class="panel explanation" aria-live="polite">
+        <p class="eyebrow">Current stage</p>
+        <h2 id="stage-title">1. Model vertices</h2>
+        <p id="stage-description">A vector scene starts as math: vertex positions, colors, and triangles. The renderer has exact coordinates, not pixels.</p>
+        <div class="io-grid">
+          <div>
+            <h3>Input</h3>
+            <p id="stage-input">Local-space vertices with per-vertex colors.</p>
+          </div>
+          <div>
+            <h3>Output</h3>
+            <p id="stage-output">A triangle primitive ready for transformation.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel canvas-panel">
+        <div class="canvas-header">
+          <div>
+            <p class="eyebrow">Visual output</p>
+            <h2 id="visual-title">Vector input</h2>
+          </div>
+          <span id="visual-badge">No pixels yet</span>
+        </div>
+        <canvas id="raster-canvas" width="760" height="520" aria-label="Animated rasterization diagram"></canvas>
+      </article>
+    </section>
+
+    <section class="panel data-panel">
+      <div>
+        <p class="eyebrow">What changes at this stage?</p>
+        <h2>Inputs → work → outputs</h2>
+      </div>
+      <div class="data-flow" aria-live="polite">
+        <div>
+          <h3>Input data</h3>
+          <pre id="input-data"></pre>
+        </div>
+        <div>
+          <h3>Operation</h3>
+          <pre id="operation-data"></pre>
+        </div>
+        <div>
+          <h3>Output data</h3>
+          <pre id="output-data"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
